@@ -1,0 +1,46 @@
+﻿<Window x:Class="TestCaseExtractor.MainWindow" Title="TestCaseExtractor (MTM -&gt; Excel)" Height="400" Width="600" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid>
+        <DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" HorizontalAlignment="Left" Margin="10">
+                <Button Content="Connect TFS" Padding="10, 5" Click="btn_connect_Click" />
+                <Button Name="BtnExtract" Content="_Extract" IsEnabled="False" Padding="10,5" Margin="10,0,0,0" Click="btn_extract_Click" />
+            </StackPanel>
+            <Grid>
+                <TreeView Name="Tree" Grid.Column="0" Margin="5,0,5,5" ItemsSource="{Binding TeamProjects}">
+                    <TreeView.ItemContainerStyle>
+                        <Style TargetType="{x:Type TreeViewItem}">
+                            <Setter Property="TreeViewItem.IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+                            <Setter Property="TreeViewItem.IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
+                            <Setter Property="Control.FontWeight" Value="Normal" />
+                            <Style.Triggers>
+                                <Trigger Property="TreeViewItem.IsSelected" Value="True">
+                                    <Setter Property="Control.FontWeight" Value="Bold" />
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TreeView.ItemContainerStyle>
+                    <TreeView.Resources>
+                        <HierarchicalDataTemplate x:Key="{DataTemplateKey {x:Type local:TeamProjectViewModel}}" DataType="{x:Type local:TeamProjectViewModel}" ItemsSource="{Binding Children}">
+                            <StackPanel Orientation="Horizontal">
+                                <Image Source="Resources/Images/TeamProject.png" Margin="0,0,5,0" />
+                                <TextBlock Text="{Binding Name}" />
+                            </StackPanel>
+                        </HierarchicalDataTemplate>
+                        <HierarchicalDataTemplate x:Key="{DataTemplateKey {x:Type local:TestPlanViewModel}}" DataType="{x:Type local:TestPlanViewModel}" ItemsSource="{Binding Children}">
+                            <StackPanel Orientation="Horizontal">
+                                <Image Source="Resources/Images/TestPlan.png" Margin="0,0,5,0" />
+                                <TextBlock Text="{Binding Name}" />
+                            </StackPanel>
+                        </HierarchicalDataTemplate>
+                        <HierarchicalDataTemplate x:Key="{DataTemplateKey {x:Type local:TestSuiteViewModel}}" DataType="{x:Type local:TestSuiteViewModel}" ItemsSource="{Binding Children}">
+                            <StackPanel Orientation="Horizontal">
+                                <Image Source="Resources/Images/TestSuite.png" Margin="0,0,5,0" />
+                                <TextBlock Text="{Binding Name}" />
+                            </StackPanel>
+                        </HierarchicalDataTemplate>
+                    </TreeView.Resources>
+                </TreeView>
+            </Grid>
+        </DockPanel>
+    </Grid>
+</Window>
