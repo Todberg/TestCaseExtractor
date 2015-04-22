@@ -15,18 +15,12 @@ namespace TestCaseExtractor.ViewModel
 
         public ObservableCollection<TreeViewItemViewModel> Children
         {
-            get
-            {
-                return this._children;
-            }
+            get { return this._children; }
         }
 
         public bool IsExpanded
         {
-            get
-            {
-                return this._isExpanded;
-            }
+            get { return this._isExpanded; }
             set
             {
                 if (value != this._isExpanded)
@@ -47,10 +41,7 @@ namespace TestCaseExtractor.ViewModel
 
         public bool IsSelected
         {
-            get
-            {
-                return this._isSelected;
-            }
+            get { return this._isSelected; }
             set
             {
                 if (value != this._isSelected)
@@ -75,10 +66,7 @@ namespace TestCaseExtractor.ViewModel
 
         public TreeViewItemViewModel Parent
         {
-            get
-            {
-                return this._parent;
-            }
+            get { return this._parent; }
         }
 
         protected TreeViewItemViewModel(TreeViewItemViewModel parent)

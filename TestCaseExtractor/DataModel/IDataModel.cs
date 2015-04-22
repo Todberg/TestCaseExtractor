@@ -1,5 +1,4 @@
-﻿using System;
-namespace TestCaseExtractor.DataModel
+﻿namespace TestCaseExtractor.DataModel
 {
     public interface IDataModel
     {

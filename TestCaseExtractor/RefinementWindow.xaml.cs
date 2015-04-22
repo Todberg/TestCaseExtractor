@@ -24,12 +24,9 @@ namespace TestCaseExtractor
         private IDataModel _itemDataModel;
         private System.Collections.Generic.List<ItemViewModel> _treeData;
         private CommandBinding _commandBinding;
-        internal TreeView tree;
         private string _path;
         public static bool createComments;
         public static bool includeDescription;
-        internal CheckBox ChkComments;
-        internal CheckBox ChkDescription;
 
         public RefinementWindow(IDataModel itemDataModel, string path)
         {

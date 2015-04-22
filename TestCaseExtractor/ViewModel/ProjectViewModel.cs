@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Controls;
@@ -10,22 +9,16 @@ namespace TestCaseExtractor.ViewModel
     public class ProjectViewModel
     {
         private readonly TreeView _tree;
-        private readonly System.Collections.ObjectModel.ReadOnlyCollection<TeamProjectViewModel> _teamProjects;
+        private readonly ReadOnlyCollection<TeamProjectViewModel> _teamProjects;
         
         public TreeView Tree
         {
-            get
-            {
-                return this._tree;
-            }
+            get { return this._tree; }
         }
 
         public IReadOnlyCollection<TeamProjectViewModel> TeamProjects
         {
-            get
-            {
-                return this._teamProjects;
-            }
+            get { return this._teamProjects; }
         }
 
         public ProjectViewModel(TreeView tree, IOrderedEnumerable<TeamProject> teamProjects, byte lazyLoadLevels)

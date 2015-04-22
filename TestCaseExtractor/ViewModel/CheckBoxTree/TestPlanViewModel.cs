@@ -14,7 +14,7 @@ namespace TestCaseExtractor.ViewModel.CheckBoxTree
             private set;
         }
 
-        public TestPlanViewModel(TestPlan testPlan) : base(testPlan.TFSTestPlan.get_Name())
+        public TestPlanViewModel(TestPlan testPlan) : base(testPlan.TFSTestPlan.Name)
         {
             this._testPlan = testPlan;
             this.TestPlan = this._testPlan;
@@ -23,7 +23,7 @@ namespace TestCaseExtractor.ViewModel.CheckBoxTree
 
         protected override void LoadChildren()
         {
-            foreach (TestSuite current in Database.getTestSuites(this._testPlan))
+            foreach (TestSuite current in TfsRepository.getTestSuites(this._testPlan))
             {
                 base.Children.Add(new TestSuiteViewModel(current));
             }

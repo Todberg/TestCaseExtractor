@@ -11,28 +11,14 @@ namespace TestCaseExtractor.ViewModel.CheckBoxTree
 
         public List<ItemViewModel> Children { get; set; }
 
-        public bool IsInitiallySelected
-        {
-            get;
-            set;
-        }
+        public bool IsInitiallySelected { get; set; }
 
-        public string Name
-        {
-            get;
-            private set;
-        }
+        public string Name { get; private set; }
 
         public bool? IsChecked
         {
-            get
-            {
-                return this._isChecked;
-            }
-            set
-            {
-                this.SetIsChecked(value, true, true);
-            }
+            get { return this._isChecked; }
+            set { this.SetIsChecked(value, true, true); }
         }
 
         public ItemViewModel()
@@ -94,9 +80,11 @@ namespace TestCaseExtractor.ViewModel.CheckBoxTree
             }
             this.SetIsChecked(flag, false, true);
         }
+
         protected virtual void LoadChildren()
         {
         }
+
         private void OnPropertyChanged(string prop)
         {
             if (this.PropertyChanged != null)

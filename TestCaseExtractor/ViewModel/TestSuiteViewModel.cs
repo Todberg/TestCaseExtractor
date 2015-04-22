@@ -11,15 +11,13 @@ namespace TestCaseExtractor.ViewModel
 
         public string Name
         {
-            get
-            {
-                return this._testSuite.TFSTestSuiteBase.get_Title();
-            }
+            get { return this._testSuite.TFSTestSuiteBase.Title; }
         }
 
         public TestSuiteViewModel(TestSuite testSuite, TreeViewItemViewModel parent, byte lazyLoadLevels): base(parent)
         {
             this._testSuite = testSuite;
+
             if (lazyLoadLevels > 0)
             {
                 this.LoadChildren(lazyLoadLevels -= 1);
@@ -33,10 +31,11 @@ namespace TestCaseExtractor.ViewModel
 
         protected override void LoadChildren(byte lazyLoadLevels)
         {
-            IOrderedEnumerable<TestSuite> testSuites = Database.getTestSuites(this._testSuite);
+            IOrderedEnumerable<TestSuite> testSuites = TfsRepository.getTestSuites(this._testSuite);
+
             if (testSuites != null)
             {
-                foreach (TestSuite current in Database.getTestSuites(this._testSuite))
+                foreach (TestSuite current in TfsRepository.getTestSuites(this._testSuite))
                 {
                     base.Children.Add(new TestSuiteViewModel(current, this, lazyLoadLevels));
                 }

@@ -6,7 +6,7 @@ namespace TestCaseExtractor.ViewModel.CheckBoxTree
     {
         public TestCase TestCase { get; private set; }
 
-        public TestCaseViewModel(TestCase testCase) : base(testCase.TFSTestSuiteEntry.get_Title())
+        public TestCaseViewModel(TestCase testCase) : base(testCase.TFSTestSuiteEntry.Title)
         {
             this.TestCase = testCase;
         }

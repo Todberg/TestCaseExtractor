@@ -62,7 +62,7 @@
     </ApplicationDefinition>
     <Compile Include="AsyncTasks.cs" />
     <Compile Include="Config.cs" />
-    <Compile Include="DataAccess\Database.cs" />
+    <Compile Include="DataAccess\TfsRepository.cs" />
     <Compile Include="DataModel\IDataModel.cs" />
     <Compile Include="DataModel\TeamProject.cs" />
     <Compile Include="DataModel\TestCase.cs" />
@@ -133,7 +133,12 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Resource Include="Resources\Images\TeamProject.png" />
+    <Resource Include="Resources\Images\TestCase.png" />
+    <Resource Include="Resources\Images\TestPlan.png" />
+    <Resource Include="Resources\Images\TestSuite.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

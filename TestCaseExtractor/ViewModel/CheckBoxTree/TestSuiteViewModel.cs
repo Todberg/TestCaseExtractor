@@ -27,7 +27,7 @@ namespace TestCaseExtractor.ViewModel.CheckBoxTree
 			private set;
 		}
 
-		public TestSuiteViewModel(TestSuite testSuite) : base(testSuite.TFSTestSuiteBase.get_TestSuiteEntry().get_Title())
+		public TestSuiteViewModel(TestSuite testSuite) : base(testSuite.TFSTestSuiteBase.TestSuiteEntry.Title)
 		{
 			this._testSuite = testSuite;
 			this.ChildrenTestSuites = new System.Collections.Generic.List<TestSuiteViewModel>();
@@ -38,17 +38,17 @@ namespace TestCaseExtractor.ViewModel.CheckBoxTree
 
 		protected override void LoadChildren()
 		{
-			IOrderedEnumerable<TestSuite> testSuites = Database.getTestSuites(this._testSuite);
+			IOrderedEnumerable<TestSuite> testSuites = TfsRepository.getTestSuites(this._testSuite);
 			if (testSuites != null)
 			{
-				foreach (TestSuite current in Database.getTestSuites(this._testSuite))
+				foreach (TestSuite current in TfsRepository.getTestSuites(this._testSuite))
 				{
 					TestSuiteViewModel item = new TestSuiteViewModel(current);
 					base.Children.Add(item);
 					this.ChildrenTestSuites.Add(item);
 				}
 			}
-			IOrderedEnumerable<TestCase> testCases = Database.getTestCases(this._testSuite);
+			IOrderedEnumerable<TestCase> testCases = TfsRepository.getTestCases(this._testSuite);
 			if (testCases != null)
 			{
 				foreach (TestCase current2 in testCases)

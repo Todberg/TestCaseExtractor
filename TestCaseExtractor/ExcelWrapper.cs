@@ -81,7 +81,7 @@ namespace TestCaseExtractor
         {
             string arg = RefinementWindow.createComments ? "E" : "D";
             int num = this.GenerateTestCaseHeader(startRow, testCaseEntry);
-            TestActionCollection actions = testCaseEntry.get_TestCase().get_Actions();
+            TestActionCollection actions = testCaseEntry.TestCase.Actions;
             int count = actions.Count;
             int num2 = num + count + 1;
             this._range = this._worksheet.get_Range("B" + num, arg + (num2 - 2));
@@ -96,8 +96,8 @@ namespace TestCaseExtractor
                     string text3 = "D" + num;
                     string text4 = "E" + num;
                     this.WriteRange(text, text, (i + 1).ToString() + ".", null, null, new bool?(false), new bool?(false), new ExcelWrapper.TextAlignment?(ExcelWrapper.TextAlignment.TopCenter), null);
-                    this.WriteRange(text2, text2, testStep.get_Title(), null, null, new bool?(false), new bool?(false), new ExcelWrapper.TextAlignment?(ExcelWrapper.TextAlignment.TopLeft), null);
-                    this.WriteRange(text3, text3, testStep.get_ExpectedResult(), null, null, new bool?(false), new bool?(false), new ExcelWrapper.TextAlignment?(ExcelWrapper.TextAlignment.TopLeft), null);
+                    this.WriteRange(text2, text2, testStep.Title, null, null, new bool?(false), new bool?(false), new ExcelWrapper.TextAlignment?(ExcelWrapper.TextAlignment.TopLeft), null);
+                    this.WriteRange(text3, text3, testStep.ExpectedResult, null, null, new bool?(false), new bool?(false), new ExcelWrapper.TextAlignment?(ExcelWrapper.TextAlignment.TopLeft), null);
                     if (RefinementWindow.createComments)
                     {
                         this.WriteRange(text4, text4, "", null, null, new bool?(false), new bool?(false), new ExcelWrapper.TextAlignment?(ExcelWrapper.TextAlignment.TopLeft), null);

@@ -1,17 +1,13 @@
 ﻿using Microsoft.TeamFoundation.Client;
+using Microsoft.TeamFoundation.Server;
 using System;
-using System.CodeDom.Compiler;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Forms;
-using System.Windows.Markup;
 using TestCaseExtractor.DataAccess;
 using TestCaseExtractor.DataModel;
 using TestCaseExtractor.ViewModel;
+using DialogResult = System.Windows.Forms.DialogResult;
 
 namespace TestCaseExtractor
 {
@@ -21,12 +17,11 @@ namespace TestCaseExtractor
     public partial class MainWindow : Window
     {
         public static AsyncTasks _asyncTasks;
-        public static System.Windows.Controls.Button _btnExtract;
+        public static Button _btnExtract;
+        
         private TfsTeamProjectCollection _tfs;
         private ProjectViewModel _projectViewModel;
         private RefinementWindow _refinementWindow;
-        internal System.Windows.Controls.Button BtnExtract;
-        internal System.Windows.Controls.TreeView Tree;
 
         public MainWindow()
         {
@@ -35,25 +30,25 @@ namespace TestCaseExtractor
             MainWindow._btnExtract = this.BtnExtract;
         }
 
-        private void getRootTeamProjects()
-        {
-            IOrderedEnumerable<TeamProject> teamProjects = Database.getTeamProjects(this._tfs);
-            this._projectViewModel = new ProjectViewModel(this.Tree, teamProjects, Config.LAZY_LOAD_LEVELS);
-        }
-
-        private void bindViewModelToUI()
-        {
-            base.DataContext = this._projectViewModel;
-        }
-
         private void btn_connect_Click(object sender, RoutedEventArgs e)
         {
-            TeamProjectPicker teamProjectPicker = new TeamProjectPicker(0, false);
-            System.Windows.Forms.DialogResult dialogResult = teamProjectPicker.ShowDialog();
-            if (dialogResult == System.Windows.Forms.DialogResult.OK && teamProjectPicker.get_SelectedTeamProjectCollection() != null)
+            using(var teamProjectPicker = new TeamProjectPicker(TeamProjectPickerMode.MultiProject, false))
             {
-                this._tfs = teamProjectPicker.get_SelectedTeamProjectCollection();
-                MainWindow._asyncTasks.Execute(new Action(this.getRootTeamProjects), new Action(this.bindViewModelToUI));
+                DialogResult dialogResult = teamProjectPicker.ShowDialog();
+                
+                if (dialogResult == System.Windows.Forms.DialogResult.OK && teamProjectPicker.SelectedProjects.Length > 0)
+                {
+                    ProjectInfo[] selectedProjects = teamProjectPicker.SelectedProjects;
+
+                    this._tfs = teamProjectPicker.SelectedTeamProjectCollection;
+
+                    MainWindow._asyncTasks.Execute(() => {
+                        IOrderedEnumerable<TeamProject> teamProjects = TfsRepository.GetTeamProjects(this._tfs, selectedProjects);
+                        this._projectViewModel = new ProjectViewModel(this.Tree, teamProjects, Config.LAZY_LOAD_LEVELS);
+                    }, () => {
+                        base.DataContext = this._projectViewModel;
+                    });
+                } 
             }
         }
 
