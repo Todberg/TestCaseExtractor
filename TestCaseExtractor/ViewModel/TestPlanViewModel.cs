@@ -31,9 +31,7 @@ namespace TestCaseExtractor.ViewModel
         protected override void LoadChildren(byte lazyLoadLevels)
         {
             foreach (TestSuite current in TfsRepository.getTestSuites(this._testPlan))
-            {
                 base.Children.Add(new TestSuiteViewModel(current, this, lazyLoadLevels));
-            }
         }
     }
 }

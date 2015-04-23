@@ -21,63 +21,92 @@ namespace TestCaseExtractor
     /// </summary>
     public partial class RefinementWindow : Window
     {
-        private IDataModel _itemDataModel;
-        private System.Collections.Generic.List<ItemViewModel> _treeData;
+        private IDataModel itemModelData;
+        private IList<ItemViewModel> itemViewModelData;
         private CommandBinding _commandBinding;
-        private string _path;
+        private string itemPath;
+        
         public static bool createComments;
         public static bool includeDescription;
 
-        public RefinementWindow(IDataModel itemDataModel, string path)
+        public RefinementWindow(IDataModel itemDataModel, string itemPath)
         {
             InitializeComponent();
-            this._itemDataModel = itemDataModel;
-            this._path = path;
+            this.itemModelData = itemDataModel;
+            this.itemPath = itemPath;
             base.Closed += new System.EventHandler(this.RefinementWindow_Closed);
+
             MainWindow._asyncTasks.Execute(new Action(this.Start), new Action(this.End));
         }
 
         private void Start()
         {
-            this._treeData = RootViewModel.ConstructTreeFromDataModel(this._itemDataModel);
+            this.itemViewModelData = RootViewModel.ConstructTreeFromDataModel(this.itemModelData);
         }
 
         private void End()
         {
-            this.tree.ItemsSource = this._treeData;
-            ItemViewModel root = this.tree.Items[0] as ItemViewModel;
-            this._commandBinding = new CommandBinding(ApplicationCommands.Undo, delegate(object sender, ExecutedRoutedEventArgs e)
-            {
-                e.Handled = true;
-                RefinementWindow.createComments = (this.ChkComments.IsChecked.HasValue && this.ChkComments.IsChecked.Value);
-                RefinementWindow.includeDescription = (this.ChkDescription.IsChecked.HasValue && this.ChkDescription.IsChecked.Value);
-                ExcelWrapper excelWrapper = new ExcelWrapper();
-                excelWrapper.Initialize(root, this._path);
-                MainWindow._asyncTasks.Execute(new Action(excelWrapper.CreateDocument), null);
+            this.Tree.ItemsSource = this.itemViewModelData;
+            ItemViewModel root = this.Tree.Items[0] as ItemViewModel;
 
-                if (excelWrapper.DocumentIsValid)
-                {
-                    excelWrapper.SaveDocument();
-                    return;
-                }
+            RefinementWindow.createComments = (this.ChkComments.IsChecked.HasValue && this.ChkComments.IsChecked.Value);
+            RefinementWindow.includeDescription = (this.ChkDescription.IsChecked.HasValue && this.ChkDescription.IsChecked.Value);
 
-                MessageBox.Show(Config.MSG_NO_TEST_CASES_TO_EXTRACT_TEXT, Config.MSG_NO_TEST_CASES_TO_EXTRACT_CAPTION, MessageBoxButton.OK, MessageBoxImage.Exclamation);
-            }, delegate(object sender, CanExecuteRoutedEventArgs e)
+            ExcelWrapper excelWrapper = new ExcelWrapper();
+            excelWrapper.Initialize(root, this.itemPath);
+            
+            MainWindow._asyncTasks.Execute(new Action(excelWrapper.CreateDocument), null);
+
+            if (!excelWrapper.DocumentIsValid)
             {
-                e.Handled = true;
-                if (RootViewModel.Root == null)
-                {
-                    return;
-                }
-                if (!RootViewModel.Root.IsChecked.HasValue)
-                {
-                    e.CanExecute = true;
-                    return;
-                }
-                e.CanExecute = RootViewModel.Root.IsChecked.Value;
-            });
-            base.CommandBindings.Add(this._commandBinding);
-            this.tree.Focus();
+                MessageBox.Show(
+                       Config.NoTestCasesToExtract,
+                       Config.NoTestCasesToExtractCaption,
+                       MessageBoxButton.OK,
+                       MessageBoxImage.Exclamation);
+                return;
+            }
+                
+            excelWrapper.SaveDocument();
+
+            //this._commandBinding = new CommandBinding(ApplicationCommands.Undo, delegate(object sender, ExecutedRoutedEventArgs e)
+            //{
+            //    e.Handled = true;
+            //    RefinementWindow.createComments = (this.ChkComments.IsChecked.HasValue && this.ChkComments.IsChecked.Value);
+            //    RefinementWindow.includeDescription = (this.ChkDescription.IsChecked.HasValue && this.ChkDescription.IsChecked.Value);
+            //    ExcelWrapper excelWrapper = new ExcelWrapper();
+            //    excelWrapper.Initialize(root, this.itemPath);
+            //    MainWindow._asyncTasks.Execute(new Action(excelWrapper.CreateDocument), null);
+
+            //    if (excelWrapper.DocumentIsValid)
+            //    {
+            //        excelWrapper.SaveDocument();
+            //        return;
+            //    }
+
+            //    MessageBox.Show(
+            //        Config.NoTestCasesToExtract, 
+            //        Config.NoTestCasesToExtractCaption, 
+            //        MessageBoxButton.OK, 
+            //        MessageBoxImage.Exclamation);
+            
+            //}, delegate(object sender, CanExecuteRoutedEventArgs e)
+            //{
+            //    e.Handled = true;
+            //    if (RootViewModel.Root == null)
+            //    {
+            //        return;
+            //    }
+            //    if (!RootViewModel.Root.IsChecked.HasValue)
+            //    {
+            //        e.CanExecute = true;
+            //        return;
+            //    }
+            //    e.CanExecute = RootViewModel.Root.IsChecked.Value;
+            //});
+
+            //base.CommandBindings.Add(this._commandBinding);
+            this.Tree.Focus();
         }
 
         private void RefinementWindow_Closed(object sender, System.EventArgs e)

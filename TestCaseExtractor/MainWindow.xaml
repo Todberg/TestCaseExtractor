@@ -7,8 +7,8 @@
     <Grid>
         <DockPanel HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
             <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" HorizontalAlignment="Left" Margin="10">
-                <Button Content="Connect TFS" Padding="10, 5" Click="btn_connect_Click" />
-                <Button Name="BtnExtract" Content="_Extract" IsEnabled="False" Padding="10,5" Margin="10,0,0,0" Click="btn_extract_Click" />
+                <Button Content="Connect TFS" Padding="10, 5" Click="BtnConnectClick" />
+                <Button Name="BtnExtract" Content="_Extract" IsEnabled="False" Padding="10,5" Margin="10,0,0,0" Click="BtnExtractClick" />
             </StackPanel>
             <Grid>
                 <TreeView Name="Tree" Grid.Column="0" Margin="5,0,5,5" ItemsSource="{Binding TeamProjects}">

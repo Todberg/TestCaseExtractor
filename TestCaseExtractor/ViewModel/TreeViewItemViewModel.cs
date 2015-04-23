@@ -86,7 +86,7 @@ namespace TestCaseExtractor.ViewModel
             {
                 if (current.Children.Count == 0)
                 {
-                    current.LoadChildren(Config.LAZY_LOAD_LEVELS);
+                    current.LoadChildren(Config.LazyLoadLevels);
                 }
             }
             this._isLoaded = true;

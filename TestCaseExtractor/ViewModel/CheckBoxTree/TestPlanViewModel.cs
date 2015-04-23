@@ -8,11 +8,7 @@ namespace TestCaseExtractor.ViewModel.CheckBoxTree
     {
         private TestPlan _testPlan;
 
-        public TestPlan TestPlan
-        {
-            get;
-            private set;
-        }
+        public TestPlan TestPlan { get; private set; }
 
         public TestPlanViewModel(TestPlan testPlan) : base(testPlan.TFSTestPlan.Name)
         {

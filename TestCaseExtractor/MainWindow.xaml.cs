@@ -1,6 +1,7 @@
 ﻿using Microsoft.TeamFoundation.Client;
 using Microsoft.TeamFoundation.Server;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -18,10 +19,9 @@ namespace TestCaseExtractor
     {
         public static AsyncTasks _asyncTasks;
         public static Button _btnExtract;
-        
-        private TfsTeamProjectCollection _tfs;
-        private ProjectViewModel _projectViewModel;
-        private RefinementWindow _refinementWindow;
+
+        private ProjectViewModel projectViewModel;
+        private RefinementWindow refinementWindow;
 
         public MainWindow()
         {
@@ -30,7 +30,7 @@ namespace TestCaseExtractor
             MainWindow._btnExtract = this.BtnExtract;
         }
 
-        private void btn_connect_Click(object sender, RoutedEventArgs e)
+        private void BtnConnectClick(object sender, RoutedEventArgs e)
         {
             using(var teamProjectPicker = new TeamProjectPicker(TeamProjectPickerMode.MultiProject, false))
             {
@@ -38,64 +38,51 @@ namespace TestCaseExtractor
                 
                 if (dialogResult == System.Windows.Forms.DialogResult.OK && teamProjectPicker.SelectedProjects.Length > 0)
                 {
-                    ProjectInfo[] selectedProjects = teamProjectPicker.SelectedProjects;
-
-                    this._tfs = teamProjectPicker.SelectedTeamProjectCollection;
-
                     MainWindow._asyncTasks.Execute(() => {
-                        IOrderedEnumerable<TeamProject> teamProjects = TfsRepository.GetTeamProjects(this._tfs, selectedProjects);
-                        this._projectViewModel = new ProjectViewModel(this.Tree, teamProjects, Config.LAZY_LOAD_LEVELS);
+                        TfsRepository.Initialize(teamProjectPicker.SelectedTeamProjectCollection);
+                        IOrderedEnumerable<TeamProject> teamProjects = TfsRepository.GetTeamProjects(teamProjectPicker.SelectedProjects);
+                        this.projectViewModel = new ProjectViewModel(this.Tree, teamProjects, Config.LazyLoadLevels);
                     }, () => {
-                        base.DataContext = this._projectViewModel;
+                        base.DataContext = this.projectViewModel;
                     });
-                } 
+                }
             }
         }
 
-        private void btn_extract_Click(object sender, RoutedEventArgs e)
+        private void BtnExtractClick(object sender, RoutedEventArgs e)
         {
-            TreeViewItemViewModel treeViewItemViewModel = (TreeViewItemViewModel)this._projectViewModel.Tree.SelectedItem;
+            var treeViewItemViewModel = (TreeViewItemViewModel)this.projectViewModel.Tree.SelectedItem;
+            
             IDataModel dataModel = treeViewItemViewModel.GetDataModel();
-            System.Type type = treeViewItemViewModel.GetType();
-            string name;
-            if (type == typeof(TestPlanViewModel))
-            {
-                name = ((TestPlanViewModel)treeViewItemViewModel).Name;
-            }
-            else
-            {
-                name = ((TestSuiteViewModel)treeViewItemViewModel).Name;
-            }
-            this._refinementWindow = new RefinementWindow(dataModel, this.GetSelectedItemPath(treeViewItemViewModel, name));
-            this._refinementWindow.Owner = this;
-            this._refinementWindow.ShowDialog();
+            string selectedItemPath = this.GetSelectedItemPath(treeViewItemViewModel);
+
+            this.refinementWindow = new RefinementWindow(dataModel, selectedItemPath);
+            this.refinementWindow.Owner = this;
+            this.refinementWindow.ShowDialog();
         }
-        private string GetSelectedItemPath(TreeViewItemViewModel item, string itemName)
+
+        private string GetSelectedItemPath(TreeViewItemViewModel item)
         {
-            System.Collections.Generic.IList<string> list = new System.Collections.Generic.List<string>();
+            var items = new List<string>();
             TreeViewItemViewModel parent = item.Parent;
+
             do
             {
                 if (parent != null)
                 {
-                    System.Type type = parent.GetType();
+                    Type type = parent.GetType();
                     if (type == typeof(TestSuiteViewModel))
-                    {
-                        list.Add(((TestSuiteViewModel)parent).Name);
-                    }
+                        items.Add(((TestSuiteViewModel)parent).Name);
                     else if (type == typeof(TestPlanViewModel))
-                    {
-                        list.Add(((TestPlanViewModel)parent).Name);
-                    }
+                        items.Add(((TestPlanViewModel)parent).Name);
                     else if (type == typeof(TeamProjectViewModel))
-                    {
-                        list.Add(((TeamProjectViewModel)parent).Name);
-                    }
+                        items.Add(((TeamProjectViewModel)parent).Name);
+                    
                     parent = parent.Parent;
                 }
-            }
-            while (parent != null);
-            return string.Join("/", list.Reverse<string>().ToArray<string>());
+            } while (parent != null);
+
+            return string.Join("/", items.Reverse<string>().ToArray<string>());
         }
     }
 }

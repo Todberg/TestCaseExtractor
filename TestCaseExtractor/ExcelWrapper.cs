@@ -4,11 +4,11 @@ using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using TestCaseExtractor.ViewModel.CheckBoxTree;
+using ExcelApplication = Microsoft.Office.Interop.Excel.Application;
 
 namespace TestCaseExtractor
 {
@@ -23,13 +23,13 @@ namespace TestCaseExtractor
             CenterMiddle
         }
 
-        private Microsoft.Office.Interop.Excel.Application _app;
+        private ExcelApplication _app;
 		private Workbook _workbook;
 		private Sheets _worksheets;
 		private Worksheet _worksheet;
 		private Worksheet _worksheet1;
 		private Range _range;
-		//private ItemViewModel _rootViewModel;
+		private ItemViewModel _rootViewModel;
 		private string _path;
 		private int _sheetID;
 		private string _fileName;
@@ -49,12 +49,44 @@ namespace TestCaseExtractor
 
         public void Initialize(ItemViewModel rootViewModel, string path)
         {
-
+            this._rootViewModel = rootViewModel;
+			this._path = path;
+			
+            this._app = new ExcelApplication();
+            this._app.Visible = false;
+			this._workbook = this._app.Workbooks.Add(Missing.Value);
+			this._worksheets = this._workbook.Worksheets;
+            this._worksheet1 = this._workbook.Worksheets.get_Item(1);
+			this._sheetID = 1;
+			this._documentIsValid = false;
+			this._app.DisplayAlerts = false;
         }
 
         public void CreateDocument()
         {
-
+            //if (this._rootViewModel.GetType() == typeof(TestPlanViewModel))
+            //{
+            //    TestPlanViewModel testPlanViewModel = (TestPlanViewModel)this._rootViewModel;
+            //    IEnumerable<TestSuiteViewModel> enumerable = (
+            //        from testSuite in testPlanViewModel.Children
+            //        where (testSuite.IsChecked.HasValue && testSuite.IsChecked.Value) || !testSuite.IsChecked.HasValue
+            //        select testSuite).Cast<TestSuiteViewModel>();
+                
+            //    using (IEnumerator<TestSuiteViewModel> enumerator = enumerable.GetEnumerator())
+            //    {
+            //        while (enumerator.MoveNext())
+            //        {
+            //            TestSuiteViewModel current = enumerator.Current;
+            //            this._fileName = testPlanViewModel.Name;
+            //            this.TraverseTree(current, this._path);
+            //        }
+            //        goto IL_BD;
+            //    }
+            //}
+            //TestSuiteViewModel testSuiteViewModel = (TestSuiteViewModel)this._rootViewModel;
+            //this._fileName = testSuiteViewModel.Name;
+            //this.TraverseTree(testSuiteViewModel, this._path);
+            //this._worksheet1.Delete();
         }
 
         private void TraverseTree(TestSuiteViewModel checkedTestSuite, string currentPath)
@@ -229,7 +261,7 @@ namespace TestCaseExtractor
                     this._workbook.Close(System.Type.Missing, System.Type.Missing, System.Type.Missing);
                     this._app.Quit();
                 }
-                catch (System.Exception ex)
+                catch (Exception ex)
                 {
                     MessageBox.Show("Could not save document. " + ex.Message);
                 }

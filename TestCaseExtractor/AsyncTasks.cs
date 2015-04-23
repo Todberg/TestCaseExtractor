@@ -6,52 +6,52 @@ namespace TestCaseExtractor
 {
     public class AsyncTasks
     {
-        private BackgroundWorker _worker;
-        private Window _ownerWindow;
-        private LoadingWindow _loadingWindow;
-        private Action _closingAction;
-        
+        private BackgroundWorker worker;
+        private Action endAction;
+
+        private Window ownerWindow;
+        private LoadingWindow loadingWindow;
+                
         public AsyncTasks(Window owerWindow)
         {
-            this._ownerWindow = owerWindow;
-            this._worker = new BackgroundWorker();
+            this.ownerWindow = owerWindow;
+            this.worker = new BackgroundWorker();
         }
 
-        public void Execute(Action startingAction, Action closingAction = null)
+        public void Execute(Action beginAction, Action endAction = null)
         {
-            this._closingAction = closingAction;
-            this.subscribe();
-            this._worker.RunWorkerAsync(startingAction);
-            this._loadingWindow = new LoadingWindow();
-            this._loadingWindow.Owner = this._ownerWindow;
-            this._loadingWindow.ShowDialog();
+            this.endAction = endAction;
+            this.Subscribe();
+            this.worker.RunWorkerAsync(beginAction);
+            this.loadingWindow = new LoadingWindow();
+            this.loadingWindow.Owner = this.ownerWindow;
+            this.loadingWindow.ShowDialog();
         }
 
-        private void worker_DoWork(object sender, DoWorkEventArgs e)
+        private void WorkerDoWork(object sender, DoWorkEventArgs e)
         {
             ((Action)e.Argument)();
         }
 
-        private void worker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        private void WorkerRunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            if (this._closingAction != null)
-            {
-                this._closingAction();
-            }
-            this.unsubscribe();
-            this._loadingWindow.Close();
+            if (this.endAction != null)
+                this.endAction();
+
+            this.Unsubscribe();
+            this.loadingWindow.Close();
         }
 
-        private void subscribe()
+        private void Subscribe()
         {
-            this._worker.DoWork += new DoWorkEventHandler(this.worker_DoWork);
-            this._worker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(this.worker_RunWorkerCompleted);
+            this.worker.DoWork += new DoWorkEventHandler(this.WorkerDoWork);
+            this.worker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(this.WorkerRunWorkerCompleted);
         }
 
-        private void unsubscribe()
+        private void Unsubscribe()
         {
-            this._worker.DoWork -= new DoWorkEventHandler(this.worker_DoWork);
-            this._worker.RunWorkerCompleted -= new RunWorkerCompletedEventHandler(this.worker_RunWorkerCompleted);
+            this.worker.DoWork -= new DoWorkEventHandler(this.WorkerDoWork);
+            this.worker.RunWorkerCompleted -= new RunWorkerCompletedEventHandler(this.WorkerRunWorkerCompleted);
         }
     }
 }
