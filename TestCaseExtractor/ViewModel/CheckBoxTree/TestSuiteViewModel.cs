@@ -3,35 +3,24 @@ using System.Collections.Generic;
 using System.Linq;
 using TestCaseExtractor.DataAccess;
 using TestCaseExtractor.DataModel;
+
 namespace TestCaseExtractor.ViewModel.CheckBoxTree
 {
 	public class TestSuiteViewModel : ItemViewModel
 	{
 		private TestSuite _testSuite;
 
-		public System.Collections.Generic.List<TestSuiteViewModel> ChildrenTestSuites
-		{
-			get;
-			private set;
-		}
+        public IList<TestSuiteViewModel> ChildrenTestSuites { get; private set; }
 
-		public System.Collections.Generic.List<TestCaseViewModel> ChildrenTestCases
-		{
-			get;
-			private set;
-		}
+		public IList<TestCaseViewModel> ChildrenTestCases { get; private set; }
 
-		public TestSuite TestSuite
-		{
-			get;
-			private set;
-		}
+		public TestSuite TestSuite { get; private set; }
 
 		public TestSuiteViewModel(TestSuite testSuite) : base(testSuite.TFSTestSuiteBase.TestSuiteEntry.Title)
 		{
 			this._testSuite = testSuite;
-			this.ChildrenTestSuites = new System.Collections.Generic.List<TestSuiteViewModel>();
-			this.ChildrenTestCases = new System.Collections.Generic.List<TestCaseViewModel>();
+			this.ChildrenTestSuites = new List<TestSuiteViewModel>();
+			this.ChildrenTestCases = new List<TestCaseViewModel>();
 			this.TestSuite = this._testSuite;
 			this.LoadChildren();
 		}
@@ -41,21 +30,22 @@ namespace TestCaseExtractor.ViewModel.CheckBoxTree
 			IOrderedEnumerable<TestSuite> testSuites = TfsRepository.getTestSuites(this._testSuite);
 			if (testSuites != null)
 			{
-				foreach (TestSuite current in TfsRepository.getTestSuites(this._testSuite))
+				foreach (TestSuite testSuite in TfsRepository.getTestSuites(this._testSuite))
 				{
-					TestSuiteViewModel item = new TestSuiteViewModel(current);
-					base.Children.Add(item);
-					this.ChildrenTestSuites.Add(item);
+                    TestSuiteViewModel testSuiteViewModel = new TestSuiteViewModel(testSuite);
+                    base.Children.Add(testSuiteViewModel);
+                    this.ChildrenTestSuites.Add(testSuiteViewModel);
 				}
 			}
+
 			IOrderedEnumerable<TestCase> testCases = TfsRepository.getTestCases(this._testSuite);
 			if (testCases != null)
 			{
-				foreach (TestCase current2 in testCases)
+				foreach (TestCase testCase in testCases)
 				{
-					TestCaseViewModel item2 = new TestCaseViewModel(current2);
-					base.Children.Add(item2);
-					this.ChildrenTestCases.Add(item2);
+                    TestCaseViewModel testCaseViewModel = new TestCaseViewModel(testCase);
+                    base.Children.Add(testCaseViewModel);
+                    this.ChildrenTestCases.Add(testCaseViewModel);
 				}
 			}
 		}

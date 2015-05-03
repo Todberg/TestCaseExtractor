@@ -49,63 +49,43 @@ namespace TestCaseExtractor
             this.Tree.ItemsSource = this.itemViewModelData;
             ItemViewModel root = this.Tree.Items[0] as ItemViewModel;
 
-            RefinementWindow.createComments = (this.ChkComments.IsChecked.HasValue && this.ChkComments.IsChecked.Value);
-            RefinementWindow.includeDescription = (this.ChkDescription.IsChecked.HasValue && this.ChkDescription.IsChecked.Value);
-
-            ExcelWrapper excelWrapper = new ExcelWrapper();
-            excelWrapper.Initialize(root, this.itemPath);
-            
-            MainWindow._asyncTasks.Execute(new Action(excelWrapper.CreateDocument), null);
-
-            if (!excelWrapper.DocumentIsValid)
+            this._commandBinding = new CommandBinding(ApplicationCommands.Undo, delegate(object sender, ExecutedRoutedEventArgs e)
             {
+                e.Handled = true;
+                RefinementWindow.createComments = (this.ChkComments.IsChecked.HasValue && this.ChkComments.IsChecked.Value);
+                RefinementWindow.includeDescription = (this.ChkDescription.IsChecked.HasValue && this.ChkDescription.IsChecked.Value);
+                ExcelWrapper excelWrapper = new ExcelWrapper();
+                excelWrapper.Initialize(root, this.itemPath);
+                MainWindow._asyncTasks.Execute(new Action(excelWrapper.CreateDocument), null);
+
+                if (excelWrapper.DocumentIsValid)
+                {
+                    excelWrapper.SaveDocument();
+                    return;
+                }
+
                 MessageBox.Show(
-                       Config.NoTestCasesToExtract,
-                       Config.NoTestCasesToExtractCaption,
-                       MessageBoxButton.OK,
-                       MessageBoxImage.Exclamation);
-                return;
-            }
-                
-            excelWrapper.SaveDocument();
+                    Config.NoTestCasesToExtract,
+                    Config.NoTestCasesToExtractCaption,
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Exclamation);
 
-            //this._commandBinding = new CommandBinding(ApplicationCommands.Undo, delegate(object sender, ExecutedRoutedEventArgs e)
-            //{
-            //    e.Handled = true;
-            //    RefinementWindow.createComments = (this.ChkComments.IsChecked.HasValue && this.ChkComments.IsChecked.Value);
-            //    RefinementWindow.includeDescription = (this.ChkDescription.IsChecked.HasValue && this.ChkDescription.IsChecked.Value);
-            //    ExcelWrapper excelWrapper = new ExcelWrapper();
-            //    excelWrapper.Initialize(root, this.itemPath);
-            //    MainWindow._asyncTasks.Execute(new Action(excelWrapper.CreateDocument), null);
+            }, delegate(object sender, CanExecuteRoutedEventArgs e)
+            {
+                e.Handled = true;
+                if (RootViewModel.Root == null)
+                {
+                    return;
+                }
+                if (!RootViewModel.Root.IsChecked.HasValue)
+                {
+                    e.CanExecute = true;
+                    return;
+                }
+                e.CanExecute = RootViewModel.Root.IsChecked.Value;
+            });
 
-            //    if (excelWrapper.DocumentIsValid)
-            //    {
-            //        excelWrapper.SaveDocument();
-            //        return;
-            //    }
-
-            //    MessageBox.Show(
-            //        Config.NoTestCasesToExtract, 
-            //        Config.NoTestCasesToExtractCaption, 
-            //        MessageBoxButton.OK, 
-            //        MessageBoxImage.Exclamation);
-            
-            //}, delegate(object sender, CanExecuteRoutedEventArgs e)
-            //{
-            //    e.Handled = true;
-            //    if (RootViewModel.Root == null)
-            //    {
-            //        return;
-            //    }
-            //    if (!RootViewModel.Root.IsChecked.HasValue)
-            //    {
-            //        e.CanExecute = true;
-            //        return;
-            //    }
-            //    e.CanExecute = RootViewModel.Root.IsChecked.Value;
-            //});
-
-            //base.CommandBindings.Add(this._commandBinding);
+            base.CommandBindings.Add(this._commandBinding);
             this.Tree.Focus();
         }
 
