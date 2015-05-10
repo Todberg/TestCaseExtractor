@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using System.Windows;
 using TestCaseExtractor.ViewModel.CheckBoxTree;
 using ExcelApplication = Microsoft.Office.Interop.Excel.Application;
@@ -37,36 +38,30 @@ namespace TestCaseExtractor
 
         public bool DocumentIsValid
         {
-            get
-            {
-                return this._documentIsValid;
-            }
-            private set
-            {
-                this._documentIsValid = value;
-            }
+            get { return this._documentIsValid; }
+            private set { this._documentIsValid = value; }
         }
 
         public void Initialize(ItemViewModel rootViewModel, string path)
         {
-            this._rootViewModel = rootViewModel;
-			this._path = path;
+            _rootViewModel = rootViewModel;
+			_path = path;
 			
-            this._app = new ExcelApplication();
-            this._app.Visible = false;
-			this._workbook = this._app.Workbooks.Add(Missing.Value);
-			this._worksheets = this._workbook.Worksheets;
-            this._worksheet1 = this._workbook.Worksheets.get_Item(1);
-			this._sheetID = 1;
-			this._documentIsValid = false;
-			this._app.DisplayAlerts = false;
+            _app = new ExcelApplication();
+            _app.Visible = false;
+			_workbook = this._app.Workbooks.Add(Missing.Value);
+			_worksheets = this._workbook.Worksheets;
+            _worksheet1 = this._workbook.Worksheets.get_Item(1);
+			_sheetID = 1;
+			_documentIsValid = false;
+			_app.DisplayAlerts = false;
         }
 
         public void CreateDocument()
         {
-            if (this._rootViewModel.GetType() == typeof(TestPlanViewModel))
+            if (_rootViewModel is TestPlanViewModel)
             {
-                TestPlanViewModel testPlanViewModel = (TestPlanViewModel)this._rootViewModel;
+                TestPlanViewModel testPlanViewModel = (TestPlanViewModel)_rootViewModel;
                 
                 IEnumerable<TestSuiteViewModel> checkedTestSuites = (
                     from testSuite in testPlanViewModel.Children
@@ -75,18 +70,18 @@ namespace TestCaseExtractor
 
                 foreach (var testSuiteViewModel in checkedTestSuites)
                 {
-                    this._fileName = testPlanViewModel.Name;
-                    this.TraverseTree(testSuiteViewModel, this._path);
+                    _fileName = testPlanViewModel.Name;
+                    TraverseTree(testSuiteViewModel, _path);
                 }
             }
             else
             {
-                TestSuiteViewModel testSuiteViewModel = (TestSuiteViewModel)this._rootViewModel;
-                this._fileName = testSuiteViewModel.Name;
-                this.TraverseTree(testSuiteViewModel, this._path);
+                TestSuiteViewModel testSuiteViewModel = (TestSuiteViewModel)_rootViewModel;
+                _fileName = testSuiteViewModel.Name;
+                TraverseTree(testSuiteViewModel, _path);
             }
 
-            this._worksheet1.Delete();
+            _worksheet1.Delete();
         }
 
         private void TraverseTree(TestSuiteViewModel checkedTestSuite, string currentPath)
@@ -98,8 +93,8 @@ namespace TestCaseExtractor
 
             if (checkedTestCases.Count() > 0)
             {
-                this.GenerateSheetForTestSuite(checkedTestSuite.TestSuite.TFSTestSuiteBase, checkedTestCases, currentPath + "/" + checkedTestSuite.Name);
-                this._documentIsValid = true;
+                GenerateSheetForTestSuite(checkedTestSuite.TestSuite.TFSTestSuiteBase, checkedTestCases, currentPath + "/" + checkedTestSuite.Name);
+                _documentIsValid = true;
             }
 
             IEnumerable<TestSuiteViewModel> checkedTestSuites = 
@@ -113,81 +108,60 @@ namespace TestCaseExtractor
 
         private void GenerateSheetForTestSuite(ITestSuiteBase testSuite, IEnumerable<TestCaseViewModel> testCases, string testSuitePath)
         {
-            this._worksheet = (Microsoft.Office.Interop.Excel.Worksheet)this._workbook.Sheets.Add();
+            _worksheet = (Microsoft.Office.Interop.Excel.Worksheet)_workbook.Sheets.Add();
 
-            this.SetWorksheetName(testSuite.Title);
-			this.GenerateSheetHeader(testSuitePath);
+            SetWorksheetName(testSuite.Title);
+			GenerateSheetHeader(testSuitePath);
+
 			int startRow = 4;
-
 			foreach (TestCaseViewModel testCase in testCases)
 			{
-				startRow = this.GenerateTestCase(testCase.TestCase.TFSTestSuiteEntry, startRow);
+				startRow = GenerateTestCase(testCase.TestCase.TFSTestSuiteEntry, startRow);
 			}
         }
 
         private void GenerateSheetHeader(string path)
         {
-            this._range = this._worksheet.get_Range("A1", "A1");
-            this._range.Columns.ColumnWidth = 2.14;
+            _range = this._worksheet.get_Range("A1", "A1");
+            _range.Columns.ColumnWidth = 2.14;
             string cell = RefinementWindow.createComments ? "E2" : "D2";
-            this.WriteRange("B2", cell, path, null, new double?(40.0), new bool?(false), new bool?(false), new ExcelWrapper.TextAlignment?(ExcelWrapper.TextAlignment.CenterMiddle), new bool?(true));
-            this._range = this._worksheet.get_Range("B2", cell);
-            this._range.Interior.Color = 13037518;
-            this.DrawAllSolidBorders(this._range, 0);
+            WriteRange("B2", cell, path, null, 40.0, false, false, TextAlignment.CenterMiddle, true);
+            _range = this._worksheet.get_Range("B2", cell);
+            _range.Interior.Color = 13037518;
+            DrawAllSolidBorders(this._range, 0);
         }
 
         private int GenerateTestCaseHeader(int row, ITestSuiteEntry testCaseEntry)
         {
             string arg = RefinementWindow.createComments ? "E" : "D";
 
-            ExcelWrapper.TextAlignment? alignment = new ExcelWrapper.TextAlignment?(ExcelWrapper.TextAlignment.TopRight);
-
-			this.WriteRange("B" + row, arg + row,  "ID: " + testCaseEntry.Id.ToString(), null, null, new bool?(false), new bool?(true), alignment, new bool?(true));
+			WriteRange("B" + row, arg + row,  "ID: " + testCaseEntry.Id.ToString(), null, null, false, true, TextAlignment.TopRight, true);
 			int num = row + 1;
-			ExcelWrapper.TextAlignment? alignment2 = new ExcelWrapper.TextAlignment?(ExcelWrapper.TextAlignment.CenterMiddle);
-			this.WriteRange("B" + num, arg + num, testCaseEntry.Title, null, new double?(35.0), new bool?(false), new bool?(false), alignment2, new bool?(true));
+			WriteRange("B" + num, arg + num, testCaseEntry.Title, null, 35.0, false, false, TextAlignment.CenterMiddle, true);
 
 			num++;
 			
             if (RefinementWindow.includeDescription && !string.IsNullOrEmpty(testCaseEntry.TestCase.Description))
 			{
-				this.WriteRange("B" + num, arg + num, testCaseEntry.TestCase.Description, null, 60.0, false, false, TextAlignment.CenterMiddle, true);
-				this._range = this._worksheet.get_Range("B" + num, arg + num);
-				this.DrawSolidBorders(this._range, 0);
+                string description = HtmlToPlainText(testCaseEntry.TestCase.Description);
+
+                WriteRange("B" + num, arg + num, description, null, 60.0, false, false, TextAlignment.CenterMiddle, true);
+				_range = this._worksheet.get_Range("B" + num, arg + num);
+				DrawSolidBorders(this._range, 0);
 				num++;
 			}
 
 			var array = new []
 			{
-				new
-				{
-					cell = "B" + num,
-					title = "#",
-					columnWidth = 2.86
-				},
-				new
-				{
-					cell = "C" + num,
-					title = "Action",
-					columnWidth = 70.0
-				},
-				new
-				{
-					cell = "D" + num,
-					title = "Expected Result",
-					columnWidth = 70.0
-				},
-				new
-				{
-					cell = "E" + num,
-					title = "Comments",
-					columnWidth = 40.0
-				}
+				new { cell = "B" + num, title = "#", columnWidth = 2.86 },
+				new { cell = "C" + num, title = "Action", columnWidth = 70.0 },
+				new { cell = "D" + num, title = "Expected Result", columnWidth = 70.0 },
+				new { cell = "E" + num, title = "Comments", columnWidth = 40.0 }
 			};
 
-			this._range = this._worksheet.get_Range("B" + row, arg + num);
-			this._range.Interior.Color = 13037518;
-			this.DrawSolidBorders(this._range, 0);
+			_range = this._worksheet.get_Range("B" + row, arg + num);
+			_range.Interior.Color = 13037518;
+			DrawSolidBorders(this._range, 0);
 			int num2;
 			int num3;
 
@@ -205,106 +179,71 @@ namespace TestCaseExtractor
 			for (int i = 0; i < num2; i++)
 				this.WriteRange(array[i].cell, array[i].cell, array[i].title, array[i].columnWidth, null, false, true, TextAlignment.Center, null);
             
-			this._range = this._worksheet.get_Range(array[0].cell, array[array.Length - num3].cell);
-			this._range.Interior.Color = 13037518;
-			this.DrawAllSolidBorders(this._range, 0);
+			_range = this._worksheet.get_Range(array[0].cell, array[array.Length - num3].cell);
+			_range.Interior.Color = 13037518;
+			DrawAllSolidBorders(this._range, 0);
+
 			return num + 1;
         }
 
         private int GenerateTestCase(ITestSuiteEntry testCaseEntry, int startRow)
         {
-            string createComments = RefinementWindow.createComments ? "E" : "D";
             int currentRowNumber = this.GenerateTestCaseHeader(startRow, testCaseEntry);
-            
-            TestActionCollection actions = testCaseEntry.TestCase.Actions;
-            int numberOfActions = actions.Count;
-            
-            int num2 = currentRowNumber + numberOfActions + 1;
-            this._range = this._worksheet.get_Range("B" + currentRowNumber, createComments + (num2 - 2));
-            this.DrawAllSolidBorders(this._range, 0);
-            
-            for (int i = 0; i < numberOfActions; i++)
+            int startingRowNumber = currentRowNumber;
+            int stepNumber = 1;
+
+            foreach (ITestAction action in testCaseEntry.TestCase.Actions)
             {
-                if (actions[i] is ISharedStepReference)
+                if (action is ISharedStepReference)
                 {
-                    //ISharedStepReference isr = (ISharedStepReference)actions[i];
-                    //ISharedStep ss = isr.FindSharedStep();
-                    //TestActionCollection sharedActions = ss.Actions;
-
-                    //foreach (ITestAction action in sharedActions)
-                    //{
-                    //    ITestStep ts = (ITestStep)action;
-                    //    string text = "B" + currentRowNumber;
-                    //    string text2 = "C" + currentRowNumber;
-                    //    string text3 = "D" + currentRowNumber;
-                    //    string text4 = "E" + currentRowNumber;
-                    //    this.WriteRange(text, text, (i + 1).ToString() + ".", null, null, false, false, TextAlignment.TopCenter, null);
-                    //    this.WriteRange(text2, text2, ts.Title.ToString(), null, null, false, false, TextAlignment.TopLeft, null);
-                    //    this.WriteRange(text3, text3, ts.ExpectedResult.ToString(), null, null, false, false, TextAlignment.TopLeft, null);
-
-                    //    if (RefinementWindow.createComments)
-                    //    {
-                    //        this.WriteRange(text4, text4, "", null, null, false, false, TextAlignment.TopLeft, null);
-                    //    }
-                    //    currentRowNumber++;
-                    //}
+                    ISharedStepReference isr = (ISharedStepReference)action;
+                    ISharedStep ss = isr.FindSharedStep();
+                    TestActionCollection sharedActions = ss.Actions;
+                    
+                    foreach (ITestAction sharedAction in sharedActions)
+                    {
+                        GenereateTestStepRow(currentRowNumber, stepNumber, (ITestStep)sharedAction);
+                        stepNumber++;
+                        currentRowNumber++;
+                    }
                 }
                 else
                 {
-                    ITestStep testStep = (ITestStep)actions[i];
-                    string text = "B" + currentRowNumber;
-                    string text2 = "C" + currentRowNumber;
-                    string text3 = "D" + currentRowNumber;
-                    string text4 = "E" + currentRowNumber;
-                    this.WriteRange(text, text, (i + 1).ToString() + ".", null, null, false, false, TextAlignment.TopCenter, null);
-                    this.WriteRange(text2, text2, testStep.Title.ToString(), null, null, false, false, TextAlignment.TopLeft, null);
-                    this.WriteRange(text3, text3, testStep.ExpectedResult.ToString(), null, null, false, false, TextAlignment.TopLeft, null);
-
-                    if (RefinementWindow.createComments)
-                    {
-                        this.WriteRange(text4, text4, "", null, null, false, false, TextAlignment.TopLeft, null);
-                    }
+                    GenereateTestStepRow(currentRowNumber, stepNumber, (ITestStep)action);
+                    stepNumber++;
+                    currentRowNumber++;
                 }
-                currentRowNumber++;
             }
 
-            return num2;
+            int endingRowNumber = currentRowNumber - 1;
+            _range = _worksheet.get_Range("B" + startingRowNumber, (RefinementWindow.createComments ? "E" : "D") + endingRowNumber);
+            DrawAllSolidBorders(_range, 0);
+
+            return currentRowNumber + 1;
+        }
+
+        private void GenereateTestStepRow(int currentRowNumber, int stepNumber, ITestStep testStep)
+        {
+            string title = HtmlToPlainText(testStep.Title.ToString());
+            string expectedResult = HtmlToPlainText(testStep.ExpectedResult.ToString());
+
+            WriteRange("B" + currentRowNumber, "B" + currentRowNumber, stepNumber.ToString() + ".", null, null, false, false, TextAlignment.TopCenter, null); // Id
+            WriteRange("C" + currentRowNumber, "C" + currentRowNumber, title, null, null, false, false, TextAlignment.TopLeft, null); // Action
+            WriteRange("D" + currentRowNumber, "D" + currentRowNumber, expectedResult, null, null, false, false, TextAlignment.TopLeft, null); // Expected result
+
+            if (RefinementWindow.createComments)
+                WriteRange("E" + currentRowNumber, "E" + currentRowNumber, "", null, null, false, false, TextAlignment.TopLeft, null);
         }
 
         private void GenerateTableHeader(string testSuitePath)
         {
             var array = new []
 			{
-				new
-				{
-					cell = "B3",
-					title = "Work Item ID",
-					columnWidth = 15.0
-				},
-				new
-				{
-					cell = "C3",
-					title = "Title",
-					columnWidth = 30.0
-				},
-				new
-				{
-					cell = "D3",
-					title = "Description",
-					columnWidth = 30.0
-				},
-				new
-				{
-					cell = "E3",
-					title = "Action",
-					columnWidth = 75.0
-				},
-				new
-				{
-					cell = "F3",
-					title = "Expected Result",
-					columnWidth = 75.0
-				}
+				new { cell = "B3", title = "Work Item ID", columnWidth = 15.0 },
+				new { cell = "C3", title = "Title", columnWidth = 30.0 },
+				new { cell = "D3", title = "Description", columnWidth = 30.0 },
+				new { cell = "E3", title = "Action", columnWidth = 75.0 },
+				new { cell = "F3", title = "Expected Result", columnWidth = 75.0 }
 			};
 
 			this.WriteRange("B2", "F2", testSuitePath, null, 40.0, false, false, TextAlignment.CenterMiddle, true);
@@ -332,9 +271,7 @@ namespace TestCaseExtractor
             this._range.WrapText = true;
             
             if (merge.HasValue && merge.Value)
-            {
                 this._range.Merge(Missing.Value);
-            }
 
             if (alignment.HasValue)
             {
@@ -420,6 +357,28 @@ namespace TestCaseExtractor
         private void DrawSolidBorders(Range range, int colour)
         {
             range.BorderAround2(Missing.Value, XlBorderWeight.xlThin, XlColorIndex.xlColorIndexAutomatic, Missing.Value, Missing.Value);
+        }
+
+        private static string HtmlToPlainText(string html)
+        {
+            const string tagWhiteSpace = @"(>|$)(\W|\n|\r)+<";//matches one or more (white space or line breaks) between '>' and '<'
+            const string stripFormatting = @"<[^>]*(>|$)";//match any character between '<' and '>', even when end tag is missing
+            const string lineBreak = @"<(br|BR)\s{0,1}\/{0,1}>";//matches: <br>,<br/>,<br />,<BR>,<BR/>,<BR />
+            var lineBreakRegex = new Regex(lineBreak, RegexOptions.Multiline);
+            var stripFormattingRegex = new Regex(stripFormatting, RegexOptions.Multiline);
+            var tagWhiteSpaceRegex = new Regex(tagWhiteSpace, RegexOptions.Multiline);
+
+            var text = html;
+            //Decode html specific characters
+            text = System.Net.WebUtility.HtmlDecode(text);
+            //Remove tag whitespace/line breaks
+            text = tagWhiteSpaceRegex.Replace(text, "><");
+            //Replace <br /> with line breaks
+            text = lineBreakRegex.Replace(text, Environment.NewLine);
+            //Strip formatting
+            text = stripFormattingRegex.Replace(text, string.Empty);
+
+            return text;
         }
 
         public void SaveDocument()
